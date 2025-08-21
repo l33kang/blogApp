@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Post - Blog App</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <h2><i class="fas fa-blog"></i> BlogApp</h2>
+            </div>
+            <div class="nav-menu" id="nav-menu">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="create-post.html" class="nav-link active" id="create-post-link">Create Post</a>
+                <a href="profile.html" class="nav-link" id="profile-link">Profile</a>
+                <a href="login.html" class="nav-link" id="login-link" style="display: none;">Login</a>
+                <a href="register.html" class="nav-link" id="register-link" style="display: none;">Register</a>
+                <button class="nav-link btn-logout" id="logout-btn">Logout</button>
+            </div>
+            <div class="hamburger" id="hamburger">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="container">
+            <div class="form-container" style="max-width: 800px;">
+                <h2 class="form-title" id="page-title">
+                    <i class="fas fa-plus-circle"></i> Create New Post
+                </h2>
+                
+                <form id="post-form">
+                    <div class="form-group">
+                        <label for="title">Post Title</label>
+                        <input type="text" id="title" name="title" required placeholder="Enter an engaging title...">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="content">Content</label>
+                        <textarea id="content" name="content" required placeholder="Write your post content here..." rows="15"></textarea>
+                    </div>
+                    
+                    <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                        <button type="button" class="btn-secondary" id="cancel-btn">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                        <button type="submit" class="btn-primary" id="submit-btn">
+                            <i class="fas fa-plus-circle"></i> Create Post
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 BlogApp. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+    <script>
+        let isEditMode = false;
+        let editPostId = null;
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Check if user is logged in
+            window.blogApp.checkAuthStatus();
+            const currentUser = window.blogApp.currentUser();
+            
+            if (!currentUser) {
+                window.blogApp.showAlert('Please login to create posts', 'error');
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 2000);
+                return;
+            }
+            
+            // Check if editing mode
+            const urlParams = new URLSearchParams(window.location.search);
+            editPostId = urlParams.get('edit');
+            
+            if (editPostId) {
+                isEditMode = true;
+                await loadPostForEdit(editPostId);
+            }
+            
+            setupForm();
+        });
+        
+        async function loadPostForEdit(postId) {
+            try {
+                const posts = await window.blogApp.apiRequest('/posts');
+                const post = posts.find(p => p._id === postId);
+                
+                if (!post) {
+                    window.blogApp.showAlert('Post not found', 'error');
+                    window.location.href = 'index.html';
+                    return;
+                }
+                
+                // Check if user owns the post
+                const currentUser = window.blogApp.currentUser();
+                if (post.author._id !== currentUser._id) {
+                    window.blogApp.showAlert('You are not authorized to edit this post', 'error');
+                    window.location.href = 'index.html';
+                    return;
+                }
+                
+                // Populate form
+                document.getElementById('title').value = post.title;
+                document.getElementById('content').value = post.content;
+                
+                // Update UI
+                document.getElementById('page-title').innerHTML = '<i class="fas fa-edit"></i> Edit Post';
+                document.getElementById('submit-btn').innerHTML = '<i class="fas fa-save"></i> Update Post';
+                
+            } catch (error) {
+                console.error('Error loading post:', error);
+                window.blogApp.showAlert('Error loading post for editing', 'error');
+                window.location.href = 'index.html';
+            }
+        }
+        
+        function setupForm() {
+            const postForm = document.getElementById('post-form');
+            const submitBtn = document.getElementById('submit-btn');
+            const cancelBtn = document.getElementById('cancel-btn');
+            
+            postForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const formData = new FormData(postForm);
+                const postData = {
+                    title: formData.get('title').trim(),
+                    content: formData.get('content').trim()
+                };
+                
+                if (!postData.title || !postData.content) {
+                    window.blogApp.showAlert('Please fill in all fields', 'error');
+                    return;
+                }
+                
+                try {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = isEditMode 
+                        ? '<i class="fas fa-spinner fa-spin"></i> Updating...' 
+                        : '<i class="fas fa-spinner fa-spin"></i> Creating...';
+                    
+                    if (isEditMode) {
+                        await window.blogApp.apiRequest(`/posts/${editPostId}`, {
+                            method: 'PUT',
+                            body: JSON.stringify(postData)
+                        });
+                        window.blogApp.showAlert('Post updated successfully!', 'success');
+                    } else {
+                        await window.blogApp.apiRequest('/posts', {
+                            method: 'POST',
+                            body: JSON.stringify(postData)
+                        });
+                        window.blogApp.showAlert('Post created successfully!', 'success');
+                    }
+                    
+                    // Redirect to home page
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 1000);
+                    
+                } catch (error) {
+                    console.error('Error saving post:', error);
+                    window.blogApp.showAlert(error.message, 'error');
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = isEditMode 
+                        ? '<i class="fas fa-save"></i> Update Post' 
+                        : '<i class="fas fa-plus-circle"></i> Create Post';
+                }
+            });
+            
+            cancelBtn.addEventListener('click', () => {
+                if (confirm('Are you sure you want to cancel? Any unsaved changes will be lost.')) {
+                    window.location.href = 'index.html';
+                }
+            });
+        }
+    </script>
+    
+    <style>
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+    </style>
+</body>
+</html>

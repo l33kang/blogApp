@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Blog App</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <h2><i class="fas fa-blog"></i> BlogApp</h2>
+            </div>
+            <div class="nav-menu" id="nav-menu">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="create-post.html" class="nav-link" id="create-post-link" style="display: none;">Create Post</a>
+                <a href="profile.html" class="nav-link" id="profile-link" style="display: none;">Profile</a>
+                <a href="login.html" class="nav-link active" id="login-link">Login</a>
+                <a href="register.html" class="nav-link" id="register-link">Register</a>
+                <button class="nav-link btn-logout" id="logout-btn" style="display: none;">Logout</button>
+            </div>
+            <div class="hamburger" id="hamburger">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="container">
+            <div class="form-container">
+                <h2 class="form-title"><i class="fas fa-sign-in-alt"></i> Login</h2>
+                
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+                    
+                    <button type="submit" class="btn-primary" id="login-btn">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </button>
+                </form>
+                
+                <div class="form-link">
+                    Don't have an account? <a href="register.html">Register here</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 BlogApp. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Redirect if already logged in
+            const token = localStorage.getItem('blogToken');
+            if (token) {
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            const loginForm = document.getElementById('login-form');
+            const loginBtn = document.getElementById('login-btn');
+            
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const formData = new FormData(loginForm);
+                const loginData = {
+                    email: formData.get('email'),
+                    password: formData.get('password')
+                };
+                
+                // Validate form
+                const errors = window.blogApp.validateForm(loginData);
+                if (errors.length > 0) {
+                    window.blogApp.showAlert(errors[0], 'error');
+                    return;
+                }
+                
+                try {
+                    loginBtn.disabled = true;
+                    loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
+                    
+                    const response = await window.blogApp.apiRequest('/auth/login', {
+                        method: 'POST',
+                        body: JSON.stringify(loginData)
+                    });
+                    
+                    // Store token and user data
+                    localStorage.setItem('blogToken', response.token);
+                    localStorage.setItem('blogUser', JSON.stringify(response));
+                    
+                    window.blogApp.showAlert('Login successful! Redirecting...', 'success');
+                    
+                    // Redirect to home page
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 1000);
+                    
+                } catch (error) {
+                    console.error('Login error:', error);
+                    window.blogApp.showAlert(error.message, 'error');
+                } finally {
+                    loginBtn.disabled = false;
+                    loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

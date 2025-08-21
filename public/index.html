@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog App</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <h2><i class="fas fa-blog"></i> BlogApp</h2>
+            </div>
+            <div class="nav-menu" id="nav-menu">
+                <a href="index.html" class="nav-link active">Home</a>
+                <a href="create-post.html" class="nav-link" id="create-post-link" style="display: none;">Create Post</a>
+                <a href="profile.html" class="nav-link" id="profile-link" style="display: none;">Profile</a>
+                <a href="login.html" class="nav-link" id="login-link">Login</a>
+                <a href="register.html" class="nav-link" id="register-link">Register</a>
+                <button class="nav-link btn-logout" id="logout-btn" style="display: none;">Logout</button>
+            </div>
+            <div class="hamburger" id="hamburger">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="container">
+            <div class="hero-section">
+                <h1>Welcome to Ali's App</h1>
+                <p>Share your thoughts, connect with others, and discover amazing content</p>
+            </div>
+
+            <div class="posts-section">
+                <div class="section-header">
+                    <h2>Latest Posts</h2>
+                    <div class="loading" id="posts-loading">
+                        <i class="fas fa-spinner fa-spin"></i> Loading posts...
+                    </div>
+                </div>
+                <div class="posts-container" id="posts-container">
+                    <!-- Posts will be loaded here -->
+                </div>
+                <div class="no-posts" id="no-posts" style="display: none;">
+                    <i class="fas fa-file-alt"></i>
+                    <p>No posts available. Be the first to create one!</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 BlogApp. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Post Modal -->
+    <div class="modal" id="post-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Post Title</h3>
+                <span class="close" id="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="post-meta">
+                    <span class="author" id="modal-author">Author Name</span>
+                    <span class="date" id="modal-date">Date</span>
+                </div>
+                <div class="post-content" id="modal-content">
+                    Post content will appear here...
+                </div>
+                <div class="post-actions">
+                    <button class="btn-like" id="modal-like-btn">
+                        <i class="far fa-heart"></i> <span id="modal-likes-count">0</span>
+                    </button>
+                    <button class="btn-edit" id="modal-edit-btn" style="display: none;">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                    <button class="btn-delete" id="modal-delete-btn" style="display: none;">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </div>
+                <div class="comments-section">
+                    <h4>Comments</h4>
+                    <div class="comment-form" id="comment-form" style="display: none;">
+                        <textarea id="comment-input" placeholder="Write a comment..." rows="3"></textarea>
+                        <button class="btn-submit" id="submit-comment">Post Comment</button>
+                    </div>
+                    <div class="comments-container" id="comments-container">
+                        <!-- Comments will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
